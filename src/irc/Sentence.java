@@ -21,5 +21,4 @@ public class Sentence implements java.io.Serializable {
 	public String read() {
 		return data;	
 	}
-	
 }

@@ -12,11 +12,9 @@ import java.rmi.server.UnicastRemoteObject;
 import java.io.Serializable;
 
 
-public class JvnCoordImpl 	
-extends UnicastRemoteObject 
+public class JvnCoordImpl
+extends UnicastRemoteObject
 implements JvnRemoteCoord {
-
-
 	/**
 	 * Default constructor
 	 * @throws JvnException
@@ -30,9 +28,8 @@ implements JvnRemoteCoord {
 	 *  newly created JVN object)
 	 * @throws java.rmi.RemoteException,JvnException
 	 **/
-	public int jvnGetObjectId()
-			throws java.rmi.RemoteException,jvn.JvnException {
-		// to be completed 
+	public int jvnGetObjectId() throws java.rmi.RemoteException,jvn.JvnException {
+		// to be completed
 		return 0;
 	}
 
@@ -44,8 +41,7 @@ implements JvnRemoteCoord {
 	 * @param js  : the remote reference of the JVNServer
 	 * @throws java.rmi.RemoteException,JvnException
 	 **/
-	public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
-			throws java.rmi.RemoteException,jvn.JvnException {
+	public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js) throws java.rmi.RemoteException,jvn.JvnException {
 		// to be completed 
 	}
 
@@ -55,8 +51,7 @@ implements JvnRemoteCoord {
 	 * @param js : the remote reference of the JVNServer
 	 * @throws java.rmi.RemoteException,JvnException
 	 **/
-	public JvnObject jvnLookupObject(String jon, JvnRemoteServer js)
-			throws java.rmi.RemoteException,jvn.JvnException {
+	public JvnObject jvnLookupObject(String jon, JvnRemoteServer js) throws java.rmi.RemoteException,jvn.JvnException {
 		// to be completed 
 		return null;
 	}
@@ -69,6 +64,7 @@ implements JvnRemoteCoord {
 	 * @throws java.rmi.RemoteException, JvnException
 	 **/
 	public Serializable jvnLockRead(int joi, JvnRemoteServer js) throws java.rmi.RemoteException, JvnException {
+		// to be completed 
 		return null;
 	}
 
@@ -80,6 +76,7 @@ implements JvnRemoteCoord {
 	 * @throws java.rmi.RemoteException, JvnException
 	 **/
 	public Serializable jvnLockWrite(int joi, JvnRemoteServer js) throws java.rmi.RemoteException, JvnException {
+		// to be completed 
 		return null;
 	}
 
@@ -89,6 +86,7 @@ implements JvnRemoteCoord {
 	 * @throws java.rmi.RemoteException, JvnException
 	 **/
 	public void jvnTerminate(JvnRemoteServer js) throws java.rmi.RemoteException, JvnException {
+		// to be completed 
 	}
 }
 

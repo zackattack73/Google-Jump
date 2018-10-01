@@ -9,16 +9,18 @@
 package jvn;
 
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
+import java.util.Map;
 import java.io.*;
-
-
 
 public class JvnServerImpl 	
 extends UnicastRemoteObject 
-implements JvnLocalServer, JvnRemoteServer{
-
-	// A JVN server is managed as a singleton 
+implements JvnLocalServer, JvnRemoteServer {
+	// A JVN server is managed as a singleton
 	private static JvnServerImpl js = null;
+	
+	private Map<String, JvnObject> mapName;
+	private Map<Integer, JvnObject> mapId;
 
 	/**
 	 * Default constructor
@@ -26,7 +28,8 @@ implements JvnLocalServer, JvnRemoteServer{
 	 **/
 	private JvnServerImpl() throws Exception {
 		super();
-		// to be completed
+		this.mapName = new HashMap<>();
+		this.mapId = new HashMap<>();
 	}
 
 	/**
@@ -35,7 +38,7 @@ implements JvnLocalServer, JvnRemoteServer{
 	 * @throws JvnException
 	 **/
 	public static JvnServerImpl jvnGetServer() {
-		if (js == null){
+		if (js == null) {
 			try {
 				js = new JvnServerImpl();
 			} catch (Exception e) {
@@ -49,9 +52,10 @@ implements JvnLocalServer, JvnRemoteServer{
 	 * The JVN service is not used anymore
 	 * @throws JvnException
 	 **/
-	public  void jvnTerminate()
-			throws jvn.JvnException {
-		// to be completed 
+	public void jvnTerminate() throws jvn.JvnException {
+		// to be completed
+		System.exit(0);
+		
 	} 
 
 	/**
@@ -59,9 +63,8 @@ implements JvnLocalServer, JvnRemoteServer{
 	 * @param o : the JVN object state
 	 * @throws JvnException
 	 **/
-	public  JvnObject jvnCreateObject(Serializable o)
-			throws jvn.JvnException { 
-		// to be completed 
+	public JvnObject jvnCreateObject(Serializable o) throws jvn.JvnException { 
+		// to be completed
 		return null; 
 	}
 
@@ -71,20 +74,24 @@ implements JvnLocalServer, JvnRemoteServer{
 	 * @param jo : the JVN object 
 	 * @throws JvnException
 	 **/
-	public  void jvnRegisterObject(String jon, JvnObject jo)
-			throws jvn.JvnException {
-		// to be completed 
+	public  void jvnRegisterObject(String jon, JvnObject jo) throws jvn.JvnException {
+		// to be completed
+		this.mapName.put(jon, jo);
+		this.mapId.put(jo.jvnGetObjectId(), jo);
 	}
 
 	/**
-	 * Provide the reference of a JVN object beeing given its symbolic name
+	 * Provide the reference of a JVN object being given its symbolic name
 	 * @param jon : the JVN object name
 	 * @return the JVN object 
 	 * @throws JvnException
 	 **/
-	public  JvnObject jvnLookupObject(String jon)
-			throws jvn.JvnException {
-		// to be completed 
+	public  JvnObject jvnLookupObject(String jon) throws jvn.JvnException {
+		// to be completed
+		if (this.mapName.containsKey(jon)) {
+			return this.mapName.get(jon);
+		}
+		
 		return null;
 	}	
 
@@ -94,9 +101,9 @@ implements JvnLocalServer, JvnRemoteServer{
 	 * @return the current JVN object state
 	 * @throws  JvnException
 	 **/
-	public Serializable jvnLockRead(int joi)
-			throws JvnException {
-		// to be completed 
+	public Serializable jvnLockRead(int joi) throws JvnException {
+		// to be completed
+		JvnObject object;
 		return null;
 
 	}	
@@ -106,8 +113,7 @@ implements JvnLocalServer, JvnRemoteServer{
 	 * @return the current JVN object state
 	 * @throws  JvnException
 	 **/
-	public Serializable jvnLockWrite(int joi)
-			throws JvnException {
+	public Serializable jvnLockWrite(int joi) throws JvnException {
 		// to be completed 
 		return null;
 	}	
@@ -120,8 +126,7 @@ implements JvnLocalServer, JvnRemoteServer{
 	 * @return void
 	 * @throws java.rmi.RemoteException,JvnException
 	 **/
-	public void jvnInvalidateReader(int joi)
-			throws java.rmi.RemoteException,jvn.JvnException {
+	public void jvnInvalidateReader(int joi) throws java.rmi.RemoteException,jvn.JvnException {
 		// to be completed 
 	};
 
@@ -129,10 +134,9 @@ implements JvnLocalServer, JvnRemoteServer{
 	 * Invalidate the Write lock of the JVN object identified by id 
 	 * @param joi : the JVN object id
 	 * @return the current JVN object state
-	 * @throws java.rmi.RemoteException,JvnException
+	 * @throws java.rmi.RemoteException, JvnException
 	 **/
-	public Serializable jvnInvalidateWriter(int joi)
-			throws java.rmi.RemoteException,jvn.JvnException { 
+	public Serializable jvnInvalidateWriter(int joi) throws java.rmi.RemoteException,jvn.JvnException { 
 		// to be completed 
 		return null;
 	};
@@ -143,8 +147,7 @@ implements JvnLocalServer, JvnRemoteServer{
 	 * @return the current JVN object state
 	 * @throws java.rmi.RemoteException,JvnException
 	 **/
-	public Serializable jvnInvalidateWriterForReader(int joi)
-			throws java.rmi.RemoteException,jvn.JvnException { 
+	public Serializable jvnInvalidateWriterForReader(int joi) throws java.rmi.RemoteException,jvn.JvnException { 
 		// to be completed 
 		return null;
 	};
