@@ -19,7 +19,6 @@ implements JvnLocalServer, JvnRemoteServer {
 	// A JVN server is managed as a singleton
 	private static JvnServerImpl js = null;
 	
-	private Map<String, JvnObject> mapName;
 	private Map<Integer, JvnObject> mapId;
 
 	/**
@@ -28,7 +27,6 @@ implements JvnLocalServer, JvnRemoteServer {
 	 **/
 	private JvnServerImpl() throws Exception {
 		super();
-		this.mapName = new HashMap<>();
 		this.mapId = new HashMap<>();
 	}
 
@@ -42,6 +40,7 @@ implements JvnLocalServer, JvnRemoteServer {
 			try {
 				js = new JvnServerImpl();
 			} catch (Exception e) {
+				System.err.println("Impossible d'instancier le serveur.");
 				return null;
 			}
 		}
@@ -88,10 +87,6 @@ implements JvnLocalServer, JvnRemoteServer {
 	 **/
 	public  JvnObject jvnLookupObject(String jon) throws jvn.JvnException {
 		// to be completed
-		if (this.mapName.containsKey(jon)) {
-			return this.mapName.get(jon);
-		}
-		
 		return null;
 	}	
 
@@ -114,7 +109,7 @@ implements JvnLocalServer, JvnRemoteServer {
 	 * @throws  JvnException
 	 **/
 	public Serializable jvnLockWrite(int joi) throws JvnException {
-		// to be completed 
+		// to be completed
 		return null;
 	}	
 
@@ -127,7 +122,9 @@ implements JvnLocalServer, JvnRemoteServer {
 	 * @throws java.rmi.RemoteException,JvnException
 	 **/
 	public void jvnInvalidateReader(int joi) throws java.rmi.RemoteException,jvn.JvnException {
-		// to be completed 
+		// to be completed
+		JvnObject o = this.mapId.get(joi);
+		o.jvnInvalidateReader();
 	};
 
 	/**
@@ -137,8 +134,10 @@ implements JvnLocalServer, JvnRemoteServer {
 	 * @throws java.rmi.RemoteException, JvnException
 	 **/
 	public Serializable jvnInvalidateWriter(int joi) throws java.rmi.RemoteException,jvn.JvnException { 
-		// to be completed 
-		return null;
+		// to be completed
+		JvnObject o = this.mapId.get(joi);
+		o.jvnInvalidateWriter();
+		return o;
 	};
 
 	/**
@@ -148,8 +147,10 @@ implements JvnLocalServer, JvnRemoteServer {
 	 * @throws java.rmi.RemoteException,JvnException
 	 **/
 	public Serializable jvnInvalidateWriterForReader(int joi) throws java.rmi.RemoteException,jvn.JvnException { 
-		// to be completed 
-		return null;
+		// to be completed
+		JvnObject o = this.mapId.get(joi);
+		o.jvnInvalidateWriterForReader();
+		return o;
 	};
 
 }
