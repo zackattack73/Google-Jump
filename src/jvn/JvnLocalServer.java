@@ -1,11 +1,5 @@
-/***
- * JAVANAISE API
- * Contact: 
- *
- * Authors: 
- */
-
 package jvn;
+
 import java.io.Serializable;
 
 /**
@@ -15,60 +9,43 @@ import java.io.Serializable;
  */
 
 public interface JvnLocalServer {
-
 	/**
 	 * create of a JVN object
 	 * @param jos : the JVN object state
 	 * @return the JVN object 
-	 * @throws JvnException
 	 **/
-	public  JvnObject jvnCreateObject(Serializable jos)
-			throws jvn.JvnException ; 
+	JvnObject jvnCreateObject(Serializable jos) throws JvnException;
 
 	/**
 	 * Associate a symbolic name with a JVN object
 	 * @param jon : the JVN object name
 	 * @param jo : the JVN object 
-	 * @throws JvnException
 	 **/
-	public  void jvnRegisterObject(String jon, JvnObject jo)
-			throws jvn.JvnException; 
+	void jvnRegisterObject(String jon, JvnObject jo) throws JvnException;
 
 	/**
 	 * Get the reference of a JVN object associated to a symbolic name
 	 * @param jon : the JVN object symbolic name
 	 * @return the JVN object 
-	 * @throws JvnException
 	 **/
-	public  JvnObject jvnLookupObject(String jon)
-			throws jvn.JvnException ; 
-
+	JvnObject jvnLookupObject(String jon) throws JvnException;
 
 	/**
 	 * Get a Read lock on a JVN object 
 	 * @param joi : the JVN object identification
 	 * @return the current JVN object state
-	 * @throws  JvnException
 	 **/
-	public Serializable jvnLockRead(int joi)
-			throws JvnException;
+	Serializable jvnLockRead(int joi) throws JvnException;
 
 	/**
 	 * Get a Write lock on a JVN object 
 	 * @param joi : the JVN object identification
 	 * @return the current JVN object state
-	 * @throws  JvnException
 	 **/
-	public Serializable jvnLockWrite(int joi)
-			throws JvnException;
-
+	Serializable jvnLockWrite(int joi) throws JvnException;
 
 	/**
 	 * The JVN service is not used anymore by the application
-	 * @throws JvnException
 	 **/
-	public  void jvnTerminate()
-			throws jvn.JvnException; 
+	void jvnTerminate() throws JvnException;
 }
-
-
