@@ -28,15 +28,19 @@ public class Irc {
 			JvnObject jo = js.jvnLookupObject("IRC");
 
 			if (jo == null) {
+				System.out.println("IRC Was Null");
 				jo = js.jvnCreateObject(new Sentence());
 				// after creation, I have a write lock on the object
 				jo.jvnUnLock();
 				js.jvnRegisterObject("IRC", jo);
+			} else {
+				System.out.println("IRC Was Not Null");
+				System.out.println(((Sentence) jo.jvnGetObjectState()).data);
 			}
 			// create the graphical part of the Chat application
 			new Irc(jo);
 		} catch (Exception e) {
-			System.out.println("IRC problem : " + e.getMessage());
+			System.out.println("IRC problem: " + e.getMessage());
 		}
 	}
 
@@ -57,7 +61,7 @@ public class Irc {
 
 		// Read button
 		Button readButton = new Button("read");
-		readButton.addActionListener(new readListener(this));
+		readButton.addActionListener(new ReadListener(this));
 		frame.add(readButton);
 
 		// Write button
@@ -75,10 +79,10 @@ public class Irc {
 /**
  * Internal class to manage user events (read) on the CHAT application
  **/
-class readListener implements ActionListener {
+class ReadListener implements ActionListener {
 	Irc irc;
 
-	public readListener (Irc i) {
+	public ReadListener(Irc i) {
 		irc = i;
 	}
 
