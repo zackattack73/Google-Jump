@@ -17,22 +17,29 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
             Registry r = LocateRegistry.getRegistry();
             r.rebind(SERVICE_NAME, o);
+            
+            System.out.println("Waiting for connections");
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
 	}
 
 	private final Map<String, JvnObject> objectsMap;
+	private final Map<Integer, JvnObject> objectsMapId;
 	private final Map<Integer, JvnRemoteServer> objectsWriteServer;
+	private final Map<Integer, Map<JvnStateLock, JvnRemoteServer>> objectsLocks;
 	private Integer currentObjectId = 0;
 
 	/**
 	 * Default constructor
+	 *
 	 **/
 	private JvnCoordImpl() throws Exception {
 		// to be completed
 		this.objectsMap = new HashMap<>();
+		this.objectsMapId = new HashMap<>();
 		this.objectsWriteServer = new HashMap<>();
+		this.objectsLocks = new HashMap<>();
 	}
 
 	/**
@@ -74,7 +81,12 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 	 **/
 	public Serializable jvnLockRead(int joi, JvnRemoteServer js) throws RemoteException, JvnException {
 		// to be completed
-		return null;
+		if (this.objectsWriteServer.get(joi) != null) {
+			this.objectsWriteServer.get(joi).jvnInvalidateWriter(joi);
+			return this.objectsMapId.get(joi).jvnGetObjectState();
+		} else {
+			return this.objectsMapId.get(joi).jvnGetObjectState();
+		}
 	}
 
 	/**
@@ -85,6 +97,21 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 	 **/
 	public Serializable jvnLockWrite(int joi, JvnRemoteServer js) throws RemoteException, JvnException {
 		// to be completed
+		for (Map.Entry<JvnStateLock, JvnRemoteServer> e : this.objectsLocks.get(joi).entrySet()) {
+			// Invalidate all readers
+			switch (e.getKey()) {
+				case R:
+					e.getValue().jvnInvalidateReader(joi);
+					break;
+				case W:
+					try {
+						e.getValue().wait();
+					} catch(Exception ex) {}
+
+					return e.getValue().jvnInvalidateWriterForReader(joi);
+				}
+		}
+		
 		return null;
 	}
 

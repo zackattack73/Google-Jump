@@ -1,7 +1,6 @@
 package jvn;
 
 import java.io.Serializable;
-import java.rmi.RemoteException;
 
 public class JvnObjectImpl implements JvnObject {
     private Serializable data;
@@ -16,18 +15,34 @@ public class JvnObjectImpl implements JvnObject {
 
     @Override
     public void jvnLockRead() throws JvnException {
-        JvnServerImpl.jvnGetServer().jvnLockRead(id);
+        switch (lock) {
+            // STOPSHIP: 08/10/18 OUI NON? stop your sheep
+            case RC:
+                lock = JvnStateLock.R;
+                break;
+            case WC:
+                lock = JvnStateLock.RWC;
+                break;
+            case N: JvnServerImpl.jvnGetServer().jvnLockRead(id); lock = JvnStateLock.R;
+        }
+        //  RC: R, WC: RWC, NL:
     }
 
     @Override
     public void jvnLockWrite() throws JvnException {
-        JvnServerImpl.jvnGetServer().jvnLockWrite(id);
+        switch (lock) {
+            case R: lock = JvnStateLock.W;
+            case RC: lock = JvnStateLock.R; break;
+            case WC: lock = JvnStateLock.W; break;
+            case N: JvnServerImpl.jvnGetServer().jvnLockWrite(id); lock = JvnStateLock.W; break;
+        }
+        // STOPSHIP: 08/10/18 STOP SHI
     }
 
     @Override
     public void jvnUnLock() throws JvnException {
         switch (lock) {
-            case R: lock = JvnStateLock.RC;
+            case R: lock = JvnStateLock.RC; notify();
             case W: lock = JvnStateLock.WC;
             case RWC: lock = JvnStateLock.WC;
         }
@@ -45,19 +60,31 @@ public class JvnObjectImpl implements JvnObject {
 
     @Override
     public void jvnInvalidateReader() throws JvnException {
-        try {
-            JvnServerImpl.jvnGetServer().jvnInvalidateReader(id);
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        switch (lock) {
+            case R:
+                try {
+                    wait();
+                } catch (InterruptedException e) { }
+            case RC:
+                // STOPSHIP: 08/10/18 OUI
+                // STOPSHIP: 08/10/18 NON
+                lock = JvnStateLock.N;
+                break;
         }
+
+        // R: wait, RC: NL
     }
 
     @Override
     public Serializable jvnInvalidateWriter() throws JvnException {
-        try {
-            return JvnServerImpl.jvnGetServer().jvnInvalidateWriter(id);
-        } catch (RemoteException e) {
-            e.printStackTrace();
+    	switch (lock) {
+            case W:
+                try {
+                    wait();
+                } catch (InterruptedException e) { }
+            case WC:
+                this.lock = JvnStateLock.N;
+                return data;
         }
 
         return null;
@@ -65,10 +92,17 @@ public class JvnObjectImpl implements JvnObject {
 
     @Override
     public Serializable jvnInvalidateWriterForReader() throws JvnException {
-        try {
-            return JvnServerImpl.jvnGetServer().jvnInvalidateWriterForReader(id);
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        switch (lock) {
+            case W:
+                try {
+                    wait();
+                } catch (InterruptedException e) { }
+            case WC:
+                this.lock = JvnStateLock.RC;
+                return this.data;
+                // STOPSHIP: 08/10/18 <3
+            case RWC:
+                this.lock = JvnStateLock.R;
         }
 
         return null;
