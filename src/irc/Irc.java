@@ -13,6 +13,7 @@ public class Irc {
 	public TextField data;
 	Frame frame;
 	JvnObject sentence;
+	private static JvnServerImpl js;
 
 	/**
 	 * main method
@@ -21,21 +22,17 @@ public class Irc {
 	public static void main(String argv[]) {
 		try {
 			// initialize JVN
-			JvnServerImpl js = JvnServerImpl.jvnGetServer();
+			js = JvnServerImpl.jvnGetServer();
 
 			// look up the IRC object in the JVN server
 			// if not found, create it, and register it in the JVN server
 			JvnObject jo = js.jvnLookupObject("IRC");
 
 			if (jo == null) {
-				System.out.println("IRC Was Null");
 				jo = js.jvnCreateObject(new Sentence());
 				// after creation, I have a write lock on the object
 				jo.jvnUnLock();
 				js.jvnRegisterObject("IRC", jo);
-			} else {
-				System.out.println("IRC Was Not Null");
-				System.out.println(((Sentence) jo.jvnGetObjectState()).data);
 			}
 			// create the graphical part of the Chat application
 			new Irc(jo);
@@ -60,12 +57,12 @@ public class Irc {
 		frame.add(data);
 
 		// Read button
-		Button readButton = new Button("read");
+		Button readButton = new Button("Read");
 		readButton.addActionListener(new ReadListener(this));
 		frame.add(readButton);
 
 		// Write button
-		Button writeButton = new Button("write");
+		Button writeButton = new Button("Write");
 		writeButton.addActionListener(new WriteListener(this));
 		frame.add(writeButton);
 
@@ -73,6 +70,15 @@ public class Irc {
 		frame.setSize(545,201);
 		text.setBackground(Color.black); 
 		frame.setVisible(true);
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				try {
+					Irc.js.jvnTerminate();
+				} catch (Exception ignored) { }
+				System.exit(0);
+			}
+		});
 	}
 }
 

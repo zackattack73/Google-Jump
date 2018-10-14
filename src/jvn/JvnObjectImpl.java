@@ -3,49 +3,74 @@ package jvn;
 import java.io.Serializable;
 
 public class JvnObjectImpl implements JvnObject {
-    private Serializable data;
+    private Serializable state;
     private JvnStateLock lock;
     private int id;
 
-    public JvnObjectImpl(Serializable data, int id) {
-        this.data = data;
-        this.lock = JvnStateLock.R;
+    public JvnObjectImpl(Serializable state, int id) {
+        this.state = state;
+        this.lock = JvnStateLock.W;
         this.id = id;
     }
 
     @Override
-    public void jvnLockRead() throws JvnException {
+    public synchronized void jvnLockRead() throws JvnException {
         switch (lock) {
-            // STOPSHIP: 08/10/18 OUI NON? stop your sheep
             case RC:
-                lock = JvnStateLock.R;
+                changeLock(JvnStateLock.R);
                 break;
             case WC:
-                lock = JvnStateLock.RWC;
+                changeLock(JvnStateLock.RWC);
                 break;
-            case N: JvnServerImpl.jvnGetServer().jvnLockRead(id); lock = JvnStateLock.R;
+            case W:
+                changeLock(JvnStateLock.R);
+                break;
+            case N:
+                JvnServerImpl.jvnGetServer().jvnLockRead(id);
+                changeLock(JvnStateLock.R);
+                break;
+            case R:
+            case RWC:
+                // Nothing to do...
+                break;
         }
-        //  RC: R, WC: RWC, NL:
     }
 
     @Override
-    public void jvnLockWrite() throws JvnException {
+    public synchronized void jvnLockWrite() throws JvnException {
         switch (lock) {
-            case R: lock = JvnStateLock.W;
-            case RC: lock = JvnStateLock.R; break;
-            case WC: lock = JvnStateLock.W; break;
-            case N: JvnServerImpl.jvnGetServer().jvnLockWrite(id); lock = JvnStateLock.W; break;
+            case WC:
+                changeLock(JvnStateLock.W);
+                break;
+            case RWC:
+                changeLock(JvnStateLock.W);
+            case R:
+            case RC:
+            case N:
+                JvnServerImpl.jvnGetServer().jvnLockWrite(id);
+                changeLock(JvnStateLock.W);
+                break;
+            case W:
+                // Nothing to do...
+                break;
         }
-        // STOPSHIP: 08/10/18 STOP SHI
     }
 
     @Override
-    public void jvnUnLock() throws JvnException {
+    public synchronized void jvnUnLock() throws JvnException {
         switch (lock) {
-            case R: lock = JvnStateLock.RC; notify();
-            case W: lock = JvnStateLock.WC;
-            case RWC: lock = JvnStateLock.WC;
+            case R:
+                changeLock(JvnStateLock.RC);
+                break;
+            case W:
+                changeLock(JvnStateLock.WC);
+                break;
+            case RWC:
+                changeLock(JvnStateLock.WC);
+                break;
         }
+
+        notifyLock();
     }
 
     @Override
@@ -55,56 +80,86 @@ public class JvnObjectImpl implements JvnObject {
 
     @Override
     public Serializable jvnGetObjectState() throws JvnException {
-        return data;
+        return state;
+    }
+
+    public void updateState(Serializable newState) {
+        this.state = newState;
     }
 
     @Override
-    public void jvnInvalidateReader() throws JvnException {
+    public synchronized void jvnInvalidateReader() throws JvnException {
         switch (lock) {
             case R:
-                try {
-                    wait();
-                } catch (InterruptedException e) { }
+                waitLock();
+                changeLock(JvnStateLock.N);
+                break;
             case RC:
-                // STOPSHIP: 08/10/18 OUI
-                // STOPSHIP: 08/10/18 NON
-                lock = JvnStateLock.N;
+                changeLock(JvnStateLock.N);
                 break;
         }
-
-        // R: wait, RC: NL
     }
 
     @Override
-    public Serializable jvnInvalidateWriter() throws JvnException {
+    public synchronized Serializable jvnInvalidateWriter() throws JvnException {
     	switch (lock) {
             case W:
-                try {
-                    wait();
-                } catch (InterruptedException e) { }
+                waitLock();
+                changeLock(JvnStateLock.N);
+                return state;
             case WC:
-                this.lock = JvnStateLock.N;
-                return data;
+                changeLock(JvnStateLock.N);
+                return state;
+            case RWC:
+                waitLock();
+                changeLock(JvnStateLock.N);
+                return state;
+            default:
+                System.out.println("WAS STATE " + lock);
         }
 
-        return null;
+        return state;
     }
 
     @Override
-    public Serializable jvnInvalidateWriterForReader() throws JvnException {
+    public synchronized Serializable jvnInvalidateWriterForReader() throws JvnException {
         switch (lock) {
             case W:
-                try {
-                    wait();
-                } catch (InterruptedException e) { }
+                waitLock();
+                changeLock(JvnStateLock.RC);
+                return state;
             case WC:
-                this.lock = JvnStateLock.RC;
-                return this.data;
-                // STOPSHIP: 08/10/18 <3
+                changeLock(JvnStateLock.RC);
+                return state;
             case RWC:
-                this.lock = JvnStateLock.R;
+                waitLock();
+                changeLock(JvnStateLock.RC);
+                return state;
+            default:
+                System.out.println("WAS STATE " + lock);
         }
 
-        return null;
+        return state;
+    }
+
+    private void changeLock(JvnStateLock to) throws JvnException {
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        StackTraceElement stackElement = stackTraceElements[2];
+
+        System.out.println("[" + jvnGetObjectId() + "] " + stackElement.getMethodName() + ": " + lock + "->" + to);
+
+        lock = to;
+    }
+
+    private void waitLock() {
+        try {
+            System.out.println("Waiting for unlock...");
+            wait();
+        } catch (InterruptedException e) { }
+    }
+
+    private void notifyLock() {
+        System.out.println("Notifying unlock...");
+        notify();
     }
 }

@@ -49,6 +49,9 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 **/
 	public void jvnTerminate() throws JvnException {
 		// to be completed
+		try {
+			remoteCoord.jvnTerminate(this);
+		} catch (RemoteException e) { }
 	} 
 
 	/**
@@ -74,7 +77,6 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 **/
 	public void jvnRegisterObject(String jon, JvnObject jo) throws JvnException {
 		// to be completed
-		// this.mapName.put(jon, jo);
 		this.mapId.put(jo.jvnGetObjectId(), jo);
 
 		try {
@@ -92,7 +94,14 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	public JvnObject jvnLookupObject(String jon) throws JvnException {
 		// to be completed
         try {
-            return remoteCoord.jvnLookupObject(jon, this);
+        	JvnObject o = remoteCoord.jvnLookupObject(jon, this);
+
+        	if (o != null) {
+				this.mapId.put(o.jvnGetObjectId(), o);
+				return o;
+			}
+
+			return null;
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -107,6 +116,13 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 **/
 	public Serializable jvnLockRead(int joi) throws JvnException {
 		// to be completed
+		try {
+			Serializable state = remoteCoord.jvnLockRead(joi, this);
+			((JvnObjectImpl) this.mapId.get(joi)).updateState(state);
+		} catch (final RemoteException re) {
+			re.printStackTrace();
+		}
+
 		return null;
 	}
 
@@ -117,6 +133,13 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 **/
 	public Serializable jvnLockWrite(int joi) throws JvnException {
 		// to be completed
+		try {
+			Serializable state = remoteCoord.jvnLockWrite(joi, this);
+			((JvnObjectImpl) this.mapId.get(joi)).updateState(state);
+		} catch (final RemoteException re) {
+			re.printStackTrace();
+		}
+
 		return null;
 	}	
 
@@ -125,8 +148,9 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * called by the JvnCoord
 	 * @param joi the JVN object id
 	 **/
-	public void jvnInvalidateReader(int joi) throws RemoteException, JvnException {
+	public synchronized void jvnInvalidateReader(int joi) throws RemoteException, JvnException {
 		// to be completed
+		this.mapId.get(joi).jvnInvalidateReader();
 	}
 
 	/**
@@ -134,9 +158,9 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @param joi : the JVN object id
 	 * @return the current JVN object state
 	 **/
-	public Serializable jvnInvalidateWriter(int joi) throws RemoteException, JvnException {
+	public synchronized Serializable jvnInvalidateWriter(int joi) throws RemoteException, JvnException {
 		// to be completed
-		return null;
+		return this.mapId.get(joi).jvnInvalidateWriter();
 	}
 
 	/**
@@ -144,8 +168,8 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 	 * @param joi : the JVN object id
 	 * @return the current JVN object state
 	 **/
-	public Serializable jvnInvalidateWriterForReader(int joi) throws RemoteException, JvnException {
+	public synchronized Serializable jvnInvalidateWriterForReader(int joi) throws RemoteException, JvnException {
 		// to be completed
-		return null;
+		return this.mapId.get(joi).jvnInvalidateWriterForReader();
 	}
 }
