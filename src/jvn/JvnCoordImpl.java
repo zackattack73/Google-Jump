@@ -14,7 +14,8 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 		try {
             JvnCoordImpl o = new JvnCoordImpl();
 
-            Registry r = LocateRegistry.getRegistry();
+            Registry r = LocateRegistry.createRegistry(1333
+			);
             r.rebind(SERVICE_NAME, o);
             
             System.out.println("Waiting for connections");
@@ -155,15 +156,15 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 			System.out.println("jvnLockWrite: total " + i);
 			// Empty list
 			readServers.clear();
-		}
-
-		// Remove writer
-		JvnRemoteServer writeServer = activeWriter.get(joi);
-		if (writeServer != null && !writeServer.equals(js)) {
-			System.out.println("jvnLockWrite: will invalidate writer");
-			Serializable lastState = writeServer.jvnInvalidateWriter(joi);
-			((JvnObjectImpl) this.idsObjects.get(joi)).updateState(lastState); // Update local state
-			activeWriter.remove(joi);
+		} else {
+			// Remove writer
+			JvnRemoteServer writeServer = activeWriter.get(joi);
+			if (writeServer != null && !writeServer.equals(js)) {
+				System.out.println("jvnLockWrite: will invalidate writer");
+				Serializable lastState = writeServer.jvnInvalidateWriter(joi);
+				((JvnObjectImpl) this.idsObjects.get(joi)).updateState(lastState); // Update local state
+				activeWriter.remove(joi);
+			}
 		}
 
 		activeWriter.put(joi, js);
@@ -172,7 +173,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
 		System.out.println("jvnLockWrite: done!");
 		
-		return this.idsObjects.get(joi).jvnGetObjectState();
+		return s;
 	}
 
 	/**

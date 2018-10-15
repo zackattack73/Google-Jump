@@ -23,7 +23,7 @@ public class JvnServerImpl extends UnicastRemoteObject implements JvnLocalServer
 
 		this.mapId = new HashMap<>();
 
-        Registry r = LocateRegistry.getRegistry("localhost");
+        Registry r = LocateRegistry.getRegistry("127.0.0.1", 1333);
         remoteCoord = (JvnRemoteCoord) r.lookup(JvnCoordImpl.SERVICE_NAME);
 	}
 

@@ -67,7 +67,7 @@ public class Irc {
 		frame.add(writeButton);
 
 		// Set up frame
-		frame.setSize(545,201);
+		frame.setSize(800,200);
 		text.setBackground(Color.black); 
 		frame.setVisible(true);
 		frame.addWindowListener(new WindowAdapter() {
