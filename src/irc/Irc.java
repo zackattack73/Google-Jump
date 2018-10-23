@@ -12,7 +12,7 @@ public class Irc {
 	public TextArea	text;
 	public TextField data;
 	Frame frame;
-	JvnObject sentence;
+	ISentence sentence;
 	private static JvnServerImpl js;
 
 	/**
@@ -24,16 +24,12 @@ public class Irc {
 			// initialize JVN
 			js = JvnServerImpl.jvnGetServer();
 
-			// look up the IRC object in the JVN server
-			// if not found, create it, and register it in the JVN server
-			JvnObject jo = js.jvnLookupObject("IRC");
+			ISentence jo = (ISentence) JvnObjectInvocationHandler.lookup("IRC");
 
 			if (jo == null) {
-				jo = js.jvnCreateObject(new Sentence());
-				// after creation, I have a write lock on the object
-				jo.jvnUnLock();
-				js.jvnRegisterObject("IRC", jo);
+				jo = (ISentence) JvnObjectInvocationHandler.create(new Sentence(), "IRC");
 			}
+
 			// create the graphical part of the Chat application
 			new Irc(jo);
 		} catch (Exception e) {
@@ -45,7 +41,7 @@ public class Irc {
 	 * IRC Constructor
      * @param jo the JVN object representing the Chat
 	 **/
-	public Irc(JvnObject jo) {
+	public Irc(ISentence jo) {
 		sentence = jo;
 		frame = new Frame();
 		frame.setLayout(new GridLayout(1,1));
@@ -97,19 +93,12 @@ class ReadListener implements ActionListener {
 	 **/
 	public void actionPerformed (ActionEvent e) {
 		try {
-			// lock the object in read mode
-			irc.sentence.jvnLockRead();
-
-			// invoke the method
-			String s = ((Sentence) irc.sentence.jvnGetObjectState()).read();
-
-			// unlock the object
-			irc.sentence.jvnUnLock();
+			String s = irc.sentence.read();
 
 			// display the read value
 			irc.data.setText(s);
 			irc.text.append(s + "\n");
-		} catch (JvnException je) {
+		} catch (Exception je) {
 			System.out.println("IRC problem: " + je.getMessage());
 		}
 	}
@@ -133,15 +122,8 @@ class WriteListener implements ActionListener {
 			// get the value to be written from the buffer
 			String s = irc.data.getText();
 
-			// lock the object in write mode
-			irc.sentence.jvnLockWrite();
-
-			// invoke the method
-			((Sentence) irc.sentence.jvnGetObjectState()).write(s);
-
-			// unlock the object
-			irc.sentence.jvnUnLock();
-		} catch (JvnException je) {
+			irc.sentence.write(s);
+		} catch (Exception je) {
 			System.out.println("IRC problem: " + je.getMessage());
 		}
 	}
