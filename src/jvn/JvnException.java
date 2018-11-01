@@ -1,7 +1,7 @@
 package jvn;
 
 /**
- * Interface of a JVN Exception. 
+ * Interface of a JVN Exception.
  */
 public class JvnException extends Exception {
 	String message;

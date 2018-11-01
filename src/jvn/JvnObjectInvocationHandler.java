@@ -69,13 +69,13 @@ public class JvnObjectInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        System.out.println("Invoke " + method.getName() + " with " + (args != null ? args.length : 0) + " args.");
+        //System.out.println("Invoke " + method.getName() + " with " + (args != null ? args.length : 0) + " args.");
 
         if (method.isAnnotationPresent(JvnLockReadAnnotation.class)) {
-            System.out.println("PROXY: lockRead");
+            //System.out.println("PROXY: lockRead");
             jvnObject.jvnLockRead();
         } else if (method.isAnnotationPresent(JvnLockWriteAnnotation.class)) {
-            System.out.println("PROXY: lockWrite");
+            //System.out.println("PROXY: lockWrite");
             jvnObject.jvnLockWrite();
         }
 

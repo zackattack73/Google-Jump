@@ -146,20 +146,20 @@ public class JvnObjectImpl implements JvnObject {
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         StackTraceElement stackElement = stackTraceElements[2];
 
-        System.out.println("[" + jvnGetObjectId() + "] " + stackElement.getMethodName() + ": " + lock + "->" + to);
+        //System.out.println("[" + jvnGetObjectId() + "] " + stackElement.getMethodName() + ": " + lock + "->" + to);
 
         lock = to;
     }
 
     private void waitLock() {
         try {
-            System.out.println("Waiting for unlock...");
+            //System.out.println("Waiting for unlock...");
             wait();
         } catch (InterruptedException e) { }
     }
 
     private void notifyLock() {
-        System.out.println("Notifying unlock...");
+        //System.out.println("Notifying unlock...");
         notify();
     }
 }
