@@ -15,6 +15,7 @@ public class JvnObjectInvocationHandler implements InvocationHandler {
     /**
      * Look up the object with the name jon on the coord. If it does not exists,
      * then return null.
+     *
      * @param jon the name of the object to search on the coord
      * @return the object associated with the name given, or null if not on the coord
      */
@@ -35,6 +36,7 @@ public class JvnObjectInvocationHandler implements InvocationHandler {
     /**
      * Create a new object locally and register it on the coord with
      * the name jon.
+     *
      * @param serializable the object to create and register
      * @param jon          the name to associate with on the coord
      * @return the object created, null if an error occurred

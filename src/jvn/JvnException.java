@@ -4,15 +4,16 @@ package jvn;
  * Interface of a JVN Exception.
  */
 public class JvnException extends Exception {
-	String message;
+    String message;
 
-	public JvnException() {}
+    public JvnException() {
+    }
 
-	public JvnException(String message) {
-		this.message = message;
-	}	
+    public JvnException(String message) {
+        this.message = message;
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public String getMessage() {
+        return message;
+    }
 }

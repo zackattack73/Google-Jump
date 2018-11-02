@@ -7,17 +7,17 @@ import java.io.Serializable;
  * during a chat application
  */
 public class Sentence implements Serializable, ISentence {
-	String data;
-  
-	public Sentence() {
-		data = "";
-	}
+    String data;
 
-	public void write(String text) {
-		data = text;
-	}
+    public Sentence() {
+        data = "";
+    }
 
-	public String read() {
-		return data;	
-	}
+    public void write(String text) {
+        data = text;
+    }
+
+    public String read() {
+        return data;
+    }
 }

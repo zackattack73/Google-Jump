@@ -102,7 +102,7 @@ public class JvnObjectImpl implements JvnObject {
 
     @Override
     public synchronized Serializable jvnInvalidateWriter() throws JvnException {
-    	switch (lock) {
+        switch (lock) {
             case W:
                 waitLock();
                 changeLock(JvnStateLock.N);
@@ -155,7 +155,8 @@ public class JvnObjectImpl implements JvnObject {
         try {
             //System.out.println("Waiting for unlock...");
             wait();
-        } catch (InterruptedException e) { }
+        } catch (InterruptedException e) {
+        }
     }
 
     private void notifyLock() {

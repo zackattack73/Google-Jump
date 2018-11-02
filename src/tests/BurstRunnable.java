@@ -23,9 +23,8 @@ public class BurstRunnable implements Runnable {
 
     private final Random randomGenerator;
     private final Integer nb;
-
-    private ISentence sentence;
     private final JvnServerImpl js;
+    private ISentence sentence;
 
     private BurstRunnable(Integer nb, ISentence sentence) {
         this.nb = nb;
