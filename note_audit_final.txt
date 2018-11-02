@@ -1,0 +1,9 @@
+- les étapes et extensions sur lesquelles vous avez travaillé
+- l'avancement dans ces étapes / extensions (ex: reflexion / codage / debug / validation complète).
+
+1. Etapes et extensions
+Uniquement les extensions obligatoires ont été réalisées:
+* Gestions des pannes côté client.
+* Gestion des pannes côté coordinateur.
+
+2. Avancement

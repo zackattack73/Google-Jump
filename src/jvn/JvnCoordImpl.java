@@ -33,8 +33,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         try {
             JvnCoordImpl o = new JvnCoordImpl();
 
-            Registry r = LocateRegistry.createRegistry(1333
-            );
+            Registry r = LocateRegistry.createRegistry(1333);
             r.rebind(SERVICE_NAME, o);
 
             System.out.println("Waiting for connections");
