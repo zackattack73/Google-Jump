@@ -11,17 +11,15 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord {
+    private static final String SAVE_NAME = "coord.save";
     static final String SERVICE_NAME = "JvnRemoteCoord";
-    private final Map<String, Integer> nameIds;
-    private final Map<Integer, JvnObject> idsObjects;
-    private final Map<Integer, JvnRemoteServer> activeWriter;
-    private final Map<Integer, Set<JvnRemoteServer>> activeReaders;
+    private Map<String, Integer> nameIds;
+    private Map<Integer, JvnObject> idsObjects;
+    private Map<Integer, JvnRemoteServer> activeWriter;
+    private Map<Integer, Set<JvnRemoteServer>> activeReaders;
     private Integer currentObjectId = 0;
 
     /**
@@ -44,6 +42,18 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             r.rebind(SERVICE_NAME, o);
 
             System.out.println("Waiting for connections");
+
+            new Thread(() -> {
+                try (Scanner s = new Scanner(System.in)) {
+                    System.out.println("Press ENTER to quit.");
+                    s.nextLine();
+                    File f = new File(SAVE_NAME);
+                    if (f.exists()) {
+                        f.delete();
+                    }
+                    System.exit(0);
+                }
+            }).start();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -54,7 +64,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * newly created JVN object)
      **/
     public synchronized int jvnGetObjectId() throws RemoteException, JvnException {
-        // to be completed
         return currentObjectId++;
     }
 
@@ -66,7 +75,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @param js  : the remote reference of the JVNServer
      **/
     public synchronized void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js) throws RemoteException, JvnException {
-        // to be completed
         Integer oid = jo.jvnGetObjectId();
 
         this.nameIds.put(jon, oid);
@@ -81,9 +89,9 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * Save the coord informations in the file "coord.sav"
      * to restore it if needed (crash)
      **/
-	public synchronized void jvnSaveCoord(){
+	public synchronized void jvnSaveCoord() {
 		try {
-			FileOutputStream saveFile = new FileOutputStream("coord.sav");
+			FileOutputStream saveFile = new FileOutputStream(SAVE_NAME);
 			ObjectOutputStream output = new ObjectOutputStream(saveFile);
 			
 			output.writeObject(this);
@@ -99,13 +107,13 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * Restore the coord informations from the file "coord.sav"
      * if the file exist
      **/
-	public synchronized void jvnRestoreCoord(){
-		if(new File("coord.sav").exists()){
+	public synchronized void jvnRestoreCoord() {
+		if (new File(SAVE_NAME).exists()) {
 			System.out.println("An old instance of coord has been found and restored");
 			try {
-				FileInputStream file = new FileInputStream("coord.ser");
+				FileInputStream file = new FileInputStream(SAVE_NAME);
 				ObjectInputStream input = new ObjectInputStream(file);
-				JvnCoordImpl restored = (JvnCoordImpl)input.readObject();
+				JvnCoordImpl restored = (JvnCoordImpl) input.readObject();
 				
 				this.idsObjects = restored.idsObjects;
 				this.nameIds = restored.nameIds;
@@ -126,7 +134,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @param js  : the remote reference of the JVNServer
      **/
     public synchronized JvnObject jvnLookupObject(String jon, JvnRemoteServer js) throws RemoteException, JvnException {
-        // to be completed
         if (this.nameIds.get(jon) != null) {
             // Object exists.
             // We need to invalidate the writer for this object.
@@ -158,19 +165,23 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @return the current JVN object state
      **/
     public synchronized Serializable jvnLockRead(int joi, JvnRemoteServer js) throws RemoteException, JvnException {
-        // to be completed
         System.out.println("jvnLockRead: " + joi);
 
-        JvnRemoteServer server = this.activeWriter.get(joi);
-        if (server != null) {
-            // We have to update state and remove writer
-            Serializable lastState = server.jvnInvalidateWriterForReader(joi);
-            this.activeWriter.remove(joi); // The object is not in active write anymore
-            this.activeReaders.get(joi).add(server);
-            System.out.println("jvnLockRead: removed activeWriter");
-            ((JvnObjectImpl) this.idsObjects.get(joi)).updateState(lastState); // Update local state
-        } else {
-            System.out.println("jvnLockRead: no active writer");
+        try {
+            JvnRemoteServer server = this.activeWriter.get(joi);
+            if (server != null) {
+                // We have to update state and remove writer
+                Serializable lastState = server.jvnInvalidateWriterForReader(joi);
+                this.activeWriter.remove(joi); // The object is not in active write anymore
+                this.activeReaders.get(joi).add(server);
+                System.out.println("jvnLockRead: removed activeWriter");
+                ((JvnObjectImpl) this.idsObjects.get(joi)).updateState(lastState); // Update local state
+            } else {
+                System.out.println("jvnLockRead: no active writer");
+            }
+        } catch (Exception e) {
+            System.out.println("Client crashed.");
+            this.activeWriter.put(joi, null); // Last version is on the coordinator
         }
 
         this.activeReaders.get(joi).add(js);
@@ -190,7 +201,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @return the current JVN object state
      **/
     public synchronized Serializable jvnLockWrite(int joi, JvnRemoteServer js) throws RemoteException, JvnException {
-        // to be completed
         System.out.println("jvnLockWrite: " + joi);
 
         // --
@@ -205,7 +215,9 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             for (JvnRemoteServer s : readServers) {
                 if (!s.equals(js)) {
                     System.out.println("jvnLockWrite: " + ++i);
-                    s.jvnInvalidateReader(joi);
+                    try {
+                        s.jvnInvalidateReader(joi);
+                    } catch (Exception e) { }
                 }
             }
             System.out.println("jvnLockWrite: total " + i);
@@ -216,9 +228,11 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
             JvnRemoteServer writeServer = activeWriter.get(joi);
             if (writeServer != null && !writeServer.equals(js)) {
                 System.out.println("jvnLockWrite: will invalidate writer");
-                Serializable lastState = writeServer.jvnInvalidateWriter(joi);
-                ((JvnObjectImpl) this.idsObjects.get(joi)).updateState(lastState); // Update local state
-                activeWriter.remove(joi);
+                try {
+                    Serializable lastState = writeServer.jvnInvalidateWriter(joi);
+                    ((JvnObjectImpl) this.idsObjects.get(joi)).updateState(lastState); // Update local state
+                    activeWriter.remove(joi);
+                } catch (Exception e) { }
             }
         }
 
@@ -239,7 +253,6 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
      * @param js : the remote reference of the server
      **/
     public synchronized void jvnTerminate(JvnRemoteServer js) throws RemoteException, JvnException {
-        // to be completed
         System.out.println("jvnTerminate:");
 
         // Remove entries where js is a writer (and update local data)

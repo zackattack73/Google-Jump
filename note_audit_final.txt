@@ -3,7 +3,7 @@
 
 1. Etapes et extensions
 Uniquement les extensions obligatoires ont été réalisées:
-* Gestions des pannes côté client.
 * Gestion des pannes côté coordinateur.
 
 2. Avancement
+Gestion des pannes côté coordinateur. -> OK

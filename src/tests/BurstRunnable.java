@@ -13,11 +13,13 @@ import java.util.logging.Logger;
 public class BurstRunnable implements Runnable {
     private static final String OBJECT_NAME = "BurstTestSentence";
     private static final Integer NB_TESTS = 100;
-    private static final Integer MIN_SLEEP = 20;
-    private static final Integer MAX_SLEEP = 100;
+    private static final Integer MIN_SLEEP = 2;
+    private static final Integer MAX_SLEEP = 10;
 
     private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz";
     private static final Integer RANDOM_STRING_LENGTH = 10;
+
+    private static final Level levelLog = Level.INFO;
 
     private static final Logger logger = Logger.getLogger(BurstRunnable.class.getName());
 
@@ -45,15 +47,15 @@ public class BurstRunnable implements Runnable {
 
     @Override
     public void run() {
-        logger.log(Level.INFO, "Thread {0} will start now.", nb);
+        logger.log(levelLog, "Thread {0} will start now.", nb);
         for (int i = 0; i < NB_TESTS; i++) {
             int isRead = randomGenerator.nextInt(2);
             if (isRead == 0) {
-                logger.log(Level.INFO, "Thread {0} will now read.", nb);
+                logger.log(levelLog, "Thread {0} will now read.", nb);
                 sentence.read();
             } else {
                 String toWrite = randomString(RANDOM_STRING_LENGTH);
-                logger.log(Level.INFO, "Thread {0} will now write: {1}.", new Object[]{nb, toWrite});
+                logger.log(levelLog, "Thread {0} will now write: {1}.", new Object[]{nb, toWrite});
                 sentence.write(toWrite);
             }
 
