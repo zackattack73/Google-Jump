@@ -1,5 +1,11 @@
 package jvn;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -27,6 +33,7 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         this.idsObjects = new HashMap<>();
         this.activeWriter = new HashMap<>();
         this.activeReaders = new HashMap<>();
+		jvnRestoreCoord();
     }
 
     public static void main(String[] args) {
@@ -69,6 +76,48 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
 
         System.out.println("jvnRegisterObject: object OK");
     }
+	
+	/**
+     * Save the coord informations in the file "coord.sav"
+     * to restore it if needed (crash)
+     **/
+	public synchronized void jvnSaveCoord(){
+		try {
+			FileOutputStream saveFile = new FileOutputStream("coord.sav");
+			ObjectOutputStream output = new ObjectOutputStream(saveFile);
+			
+			output.writeObject(this);
+			// Flush the stream just in case
+			output.flush();
+			output.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+     * Restore the coord informations from the file "coord.sav"
+     * if the file exist
+     **/
+	public synchronized void jvnRestoreCoord(){
+		if(new File("coord.sav").exists()){
+			System.out.println("An old instance of coord has been found and restored");
+			try {
+				FileInputStream file = new FileInputStream("coord.ser");
+				ObjectInputStream input = new ObjectInputStream(file);
+				JvnCoordImpl restored = (JvnCoordImpl)input.readObject();
+				
+				this.idsObjects = restored.idsObjects;
+				this.nameIds = restored.nameIds;
+				this.activeWriter = restored.activeWriter;
+				this.activeReaders = restored.activeReaders;
+				this.currentObjectId = restored.currentObjectId;
+				input.close();
+			} catch (IOException|ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
     /**
      * Get the reference of a JVN object managed by a given JVN server
@@ -125,7 +174,9 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         }
 
         this.activeReaders.get(joi).add(js);
-
+		
+		jvnSaveCoord(); // Save the coord
+		
         System.out.println("jvnLockRead: done!");
 
         return this.idsObjects.get(joi).jvnGetObjectState();
@@ -174,7 +225,9 @@ public class JvnCoordImpl extends UnicastRemoteObject implements JvnRemoteCoord 
         activeWriter.put(joi, js);
 
         Serializable s = this.idsObjects.get(joi).jvnGetObjectState();
-
+		
+		jvnSaveCoord(); // Save the coord
+		
         System.out.println("jvnLockWrite: done!");
 
         return s;
